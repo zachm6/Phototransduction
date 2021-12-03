@@ -25,10 +25,25 @@ class Synapse():
 
         # linear relationship 
         if index == 0:
-            pass 
+            
+            # light computation
+            if light:
+                self.rhodopsin = self.rhodopsin + 1
+            
+            # no light computation
+            else:
+                pass
+
         # sigmoidal relationship
         elif index == 1:
-            pass
+            
+            # light computation
+            if light:
+                self.rhodopsin = np.exp(self.rhodopsin)
+            
+            # no light computation
+            else:
+                pass
 
         return self.rhodopsin
     
