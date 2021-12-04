@@ -2,92 +2,48 @@ import numpy as np
 import math 
 import random
 
-class Synapse():
+class PhotoTransduction():
     def __init__(self):
+
+        # constants (value doesn't change)
         self.duration = 1000
+        self.capacitance = 0.5
+        self.ENa = 60   # equilibrium potential
 
-        # phototransduction varaibles
+        # numpy lists
+        self.rhodopsin = np.zeros(self.duration)
+        self.gProtein = np.zeros(self.duration)
+        self.PDE = np.zeros(self.duration)
+        self.cGMP = np.zeros(self.duration)
+        self.gNa = np.zeros(self.duration)
         self.Vm = np.zeros(self.duration)
-        self.ELeak = -70      # all voltages are in mV
-        self.rhodopsin = 0 
-        self.g_alpha = 0
-        self.pde = 0
-        self.cGMP = 0
-        self.Nacurrent = 0.1
 
-        # set initial values
-        self.Vm[0] = self.ELeak        # this will be useful later
+        # Taus
+        self.rhodopsin_tau = 0
+        self.gProtein_tau = 0
+        self.PDE_tau = 0
+        self.cGMP_tau = 0
+        self.gNa_tau = 0
 
-    # Light is a boolean type
-    # index is a integer value that specifies mathematical relationship; ex: sigmoidal, linear
-    # Return value is a integer that represents the amount of activated rhodopsin 
-    def ActivateRhodopsin(self, light, index):
+        # resting potential of rod photoreceptor
+        self.Vm[0] = -40        # source: https://www.d.umn.edu/~jfitzake/Lectures/DMED/Vision/Retina/ReceptorPotential.html
 
-        # linear relationship 
-        if index == 0:
-            
-            # light computation
-            if light:
-                self.rhodopsin = self.rhodopsin + 1
-            
-            # no light computation
-            else:
-                pass
+    def doTimeStep(self, t, light):
+        if light:
+            self.rhodopsin[t] = self.rhodopsin[t-1] + 1 *(1 - self.rhodopsin[t-1])
+            self.gProtein[t] = self.doActivation(self.rhodopsin[t], 2, 0, 1)
+            self.PDE[t] = self.doActivation(self.rhodopsin[t], 2, 0, 1)
+            self.cGMP[t] = self.doActivation(self.rhodopsin[t], 2, 0, 1)
+            self.gNa[t] = self.doActivation(self.rhodopsin[t], 2, 0, 1)
 
-        # sigmoidal relationship
-        elif index == 1:
-            
-            # light computation
-            if light:
-                self.rhodopsin = np.exp(self.rhodopsin)
-            
-            # no light computation
-            else:
-                pass
+    def doActivation (self, input=0, index=1, arg1=0, arg2=0):
+        output = 0
 
-        return self.rhodopsin
-    
-    def ActivateGprotein(self, rhodopsin, index):
+        # sigmoid 
+        if index == 1:
+            output = np.exp(input)
 
-        # linear relationship 
-        if index == 0:
-            pass
-        # sigmoidal relationship
-        elif index == 1:
-            pass
-
-        return self.g_alpha
-    
-    def ActivatePde(self, g_alpha, index):
-        
-        # linear relationship 
-        if index == 0:
-            pass
-        # sigmoidal relationship
-        elif index == 1:
-            pass
-
-        return self.pde
-
-    def MetabolizecGMP(self, pde, index):
-        
-        # linear relationship 
-        if index == 0:
-            pass
-        # sigmoidal relationship
-        elif index == 1:
-            pass
-
-        return self.cGMP
-
-    def VoltageRecording(self, cGMP, t, index):
-        
-        # relate cGMP to NaCurrent
-        # linear relationship 
-        if index == 0:
-            pass
-        # sigmoidal relationship
-        elif index == 1:
-            pass
-
-        return self.Vm[t]
+        # linear     
+        if index == 2:
+            output = output + input
+        return output
